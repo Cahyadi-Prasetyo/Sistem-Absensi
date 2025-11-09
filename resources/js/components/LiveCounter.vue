@@ -1,46 +1,62 @@
 <template>
   <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-    <div class="rounded-lg border bg-card p-6 shadow-sm">
-      <div class="flex items-center justify-between">
-        <p class="text-sm font-medium text-muted-foreground">Total Attendance</p>
-        <Icon name="users" class="h-4 w-4 text-muted-foreground" />
-      </div>
-      <div class="mt-2">
-        <p class="text-3xl font-bold">{{ stats.today_attendances }}</p>
-        <p class="text-xs text-muted-foreground">of {{ stats.total_users }} users</p>
-      </div>
-    </div>
-
-    <div class="rounded-lg border bg-card p-6 shadow-sm">
-      <div class="flex items-center justify-between">
-        <p class="text-sm font-medium text-muted-foreground">Present</p>
-        <Icon name="check-circle" class="h-4 w-4 text-green-600" />
-      </div>
-      <div class="mt-2">
-        <p class="text-3xl font-bold text-green-600">{{ stats.present_today }}</p>
-        <p class="text-xs text-muted-foreground">on time</p>
+    <!-- Total Attendance Card -->
+    <div class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 shadow-lg transition-all hover:shadow-xl hover:scale-105">
+      <div class="absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-white/10"></div>
+      <div class="relative">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium text-blue-100">Total Attendance</p>
+          <div class="rounded-lg bg-white/20 p-2">
+            <Icon name="users" class="h-5 w-5 text-white" />
+          </div>
+        </div>
+        <p class="text-4xl font-bold text-white mb-1">{{ stats.today_attendances }}</p>
+        <p class="text-sm text-blue-100">of {{ stats.total_users }} users</p>
       </div>
     </div>
 
-    <div class="rounded-lg border bg-card p-6 shadow-sm">
-      <div class="flex items-center justify-between">
-        <p class="text-sm font-medium text-muted-foreground">Late</p>
-        <Icon name="clock" class="h-4 w-4 text-yellow-600" />
-      </div>
-      <div class="mt-2">
-        <p class="text-3xl font-bold text-yellow-600">{{ stats.late_today }}</p>
-        <p class="text-xs text-muted-foreground">arrived late</p>
+    <!-- Present Card -->
+    <div class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 p-6 shadow-lg transition-all hover:shadow-xl hover:scale-105">
+      <div class="absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-white/10"></div>
+      <div class="relative">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium text-green-100">Present</p>
+          <div class="rounded-lg bg-white/20 p-2">
+            <Icon name="check-circle" class="h-5 w-5 text-white" />
+          </div>
+        </div>
+        <p class="text-4xl font-bold text-white mb-1">{{ stats.present_today }}</p>
+        <p class="text-sm text-green-100">on time today</p>
       </div>
     </div>
 
-    <div class="rounded-lg border bg-card p-6 shadow-sm">
-      <div class="flex items-center justify-between">
-        <p class="text-sm font-medium text-muted-foreground">Absent</p>
-        <Icon name="x-circle" class="h-4 w-4 text-red-600" />
+    <!-- Late Card -->
+    <div class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-6 shadow-lg transition-all hover:shadow-xl hover:scale-105">
+      <div class="absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-white/10"></div>
+      <div class="relative">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium text-amber-100">Late</p>
+          <div class="rounded-lg bg-white/20 p-2">
+            <Icon name="clock" class="h-5 w-5 text-white" />
+          </div>
+        </div>
+        <p class="text-4xl font-bold text-white mb-1">{{ stats.late_today }}</p>
+        <p class="text-sm text-amber-100">arrived late</p>
       </div>
-      <div class="mt-2">
-        <p class="text-3xl font-bold text-red-600">{{ stats.absent_today }}</p>
-        <p class="text-xs text-muted-foreground">not checked in</p>
+    </div>
+
+    <!-- Absent Card -->
+    <div class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-red-500 to-rose-600 p-6 shadow-lg transition-all hover:shadow-xl hover:scale-105">
+      <div class="absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full bg-white/10"></div>
+      <div class="relative">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-sm font-medium text-red-100">Absent</p>
+          <div class="rounded-lg bg-white/20 p-2">
+            <Icon name="x-circle" class="h-5 w-5 text-white" />
+          </div>
+        </div>
+        <p class="text-4xl font-bold text-white mb-1">{{ stats.absent_today }}</p>
+        <p class="text-sm text-red-100">not checked in</p>
       </div>
     </div>
   </div>

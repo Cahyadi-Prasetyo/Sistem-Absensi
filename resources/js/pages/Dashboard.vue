@@ -88,10 +88,18 @@ onUnmounted(() => {
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-6 p-6">
-            <div>
-                <h1 class="text-3xl font-bold">Dashboard</h1>
-                <p class="text-muted-foreground">Real-time attendance monitoring</p>
+        <div class="flex h-full flex-1 flex-col gap-6 p-6 bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-900 dark:to-blue-900/10">
+            <!-- Header with gradient -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-8 shadow-xl">
+                <div class="absolute inset-0 bg-grid-white/10"></div>
+                <div class="relative">
+                    <h1 class="text-3xl font-bold text-white mb-2">
+                        Welcome Back! 👋
+                    </h1>
+                    <p class="text-blue-100">
+                        Real-time attendance monitoring and analytics
+                    </p>
+                </div>
             </div>
 
             <!-- Live Statistics -->
