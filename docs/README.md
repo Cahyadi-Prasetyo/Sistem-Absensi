@@ -56,6 +56,12 @@ Welcome to the complete documentation for Laravel Reverb Absensi - a real-time d
 - Development roadmap
 - Implementation status
 
+### 🔧 [GitHub Actions](GITHUB-ACTIONS.md)
+**CI/CD workflows**
+- Workflow configuration
+- Common issues & solutions
+- Best practices
+
 ---
 
 ## 🎯 Quick Navigation
