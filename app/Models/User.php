@@ -62,6 +62,41 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the leaves for the user.
+     */
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class);
+    }
+
+    /**
+     * Get today's attendance.
+     */
+    public function todayAttendance()
+    {
+        return $this->attendances()
+            ->whereDate('check_in', today())
+            ->first();
+    }
+
+    /**
+     * Check if user has checked in today.
+     */
+    public function hasCheckedInToday(): bool
+    {
+        return $this->todayAttendance() !== null;
+    }
+
+    /**
+     * Check if user has checked out today.
+     */
+    public function hasCheckedOutToday(): bool
+    {
+        $attendance = $this->todayAttendance();
+        return $attendance && $attendance->check_out !== null;
+    }
+
+    /**
      * Check if user is admin.
      */
     public function isAdmin(): bool

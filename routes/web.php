@@ -12,20 +12,14 @@ Route::get('/', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/live-stats', [App\Http\Controllers\DashboardController::class, 'liveStats'])->name('dashboard.live-stats');
     
     // Attendance routes
-    Route::post('attendance/check-in', [App\Http\Controllers\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
-    Route::post('attendance/check-out', [App\Http\Controllers\AttendanceController::class, 'checkOut'])->name('attendance.check-out');
-    Route::get('attendance/today', [App\Http\Controllers\AttendanceController::class, 'today'])->name('attendance.today');
-    Route::get('attendance/history', [App\Http\Controllers\AttendanceController::class, 'history'])->name('attendance.history');
-    
-    // Server node routes
-    Route::get('server-nodes', [App\Http\Controllers\ServerNodeController::class, 'index'])->name('server-nodes.index');
-    Route::post('server-nodes/heartbeat', [App\Http\Controllers\ServerNodeController::class, 'heartbeat'])->name('server-nodes.heartbeat');
-    Route::patch('server-nodes/{id}/status', [App\Http\Controllers\ServerNodeController::class, 'updateStatus'])->name('server-nodes.update-status');
-    
-    // Real-time data endpoint
-    Route::get('dashboard/realtime-attendances', [App\Http\Controllers\DashboardController::class, 'realtimeAttendances'])->name('dashboard.realtime');
+    Route::get('attendances', [App\Http\Controllers\AttendanceController::class, 'index'])->name('attendances.index');
+    Route::post('attendances', [App\Http\Controllers\AttendanceController::class, 'store'])->name('attendances.store');
+    Route::get('attendances/{attendance}', [App\Http\Controllers\AttendanceController::class, 'show'])->name('attendances.show');
+    Route::put('attendances/{attendance}', [App\Http\Controllers\AttendanceController::class, 'update'])->name('attendances.update');
+    Route::get('attendances/today/me', [App\Http\Controllers\AttendanceController::class, 'todayAttendance'])->name('attendances.today');
 });
 
 require __DIR__.'/settings.php';
