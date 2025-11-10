@@ -41,7 +41,7 @@
           </thead>
           <tbody>
             <tr
-              v-for="attendance in attendances.data"
+              v-for="attendance in localAttendances"
               :key="attendance.id"
               class="border-b hover:bg-muted/50"
             >
@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
@@ -101,7 +101,7 @@ interface Props {
   }
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const breadcrumbs: BreadcrumbItem[] = [
   { title: 'Dashboard', href: '/dashboard' },
@@ -111,6 +111,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 const filters = ref({
   date: '',
 })
+
+// Local state untuk real-time updates
+const localAttendances = ref(props.attendances.data)
 
 const applyFilters = () => {
   router.get('/attendances', filters.value, {
@@ -138,5 +141,61 @@ const formatDuration = (minutes: number) => {
   const hours = Math.floor(minutes / 60)
   const mins = minutes % 60
   return `${hours}h ${mins}m`
+}
+
+// Real-time WebSocket listeners
+onMounted(() => {
+  // Listen untuk attendance baru
+  window.Echo.channel('attendances')
+    .listen('.attendance.created', (event: any) => {
+      console.log('New attendance received:', event)
+      
+      // Tambahkan attendance baru ke awal list
+      const newAttendance = {
+        id: event.attendance.id,
+        user_id: event.attendance.user_id,
+        check_in: event.attendance.check_in,
+        check_out: null,
+        status: event.attendance.status,
+        work_duration: null,
+        node_id: event.attendance.node_id,
+        user: event.user,
+      }
+      
+      localAttendances.value.unshift(newAttendance)
+      
+      // Tampilkan notifikasi
+      showNotification(`${event.user.name} telah check-in dari Node ${event.attendance.node_id}`)
+    })
+    .listen('.attendance.updated', (event: any) => {
+      console.log('Attendance updated:', event)
+      
+      // Update attendance yang sudah ada
+      const index = localAttendances.value.findIndex(a => a.id === event.attendance.id)
+      if (index !== -1) {
+        localAttendances.value[index] = {
+          ...localAttendances.value[index],
+          check_out: event.attendance.check_out,
+          work_duration: event.attendance.work_duration,
+          status: event.attendance.status,
+        }
+        
+        // Tampilkan notifikasi
+        showNotification(`${event.user.name} telah check-out dari Node ${event.attendance.node_id}`)
+      }
+    })
+})
+
+onUnmounted(() => {
+  // Cleanup: leave channel saat component unmount
+  window.Echo.leave('attendances')
+})
+
+// Helper untuk notifikasi
+const showNotification = (message: string) => {
+  // Bisa diganti dengan toast library seperti vue-toastification
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Attendance Update', { body: message })
+  }
 }
 </script>

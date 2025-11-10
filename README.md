@@ -60,13 +60,21 @@ docker exec laravel_absensi_app_1 php artisan migrate --seed
 
 ## ✨ Features
 
+### 🌐 Distributed System
+- ✅ **Multi-Node Architecture** - Berjalan di beberapa server secara bersamaan
+- ✅ **Real-Time Sync** - Data otomatis sync antar semua node tanpa refresh
+- ✅ **Shared Database** - Semua node mengakses database yang sama
+- ✅ **Shared Redis** - Queue dan cache terdistribusi
+- ✅ **Node Tracking** - Tracking server mana yang memproses request
+- ✅ **Load Balancing** - Distribusi traffic ke multiple instances
+
+### 📱 Core Features
 - ✅ **Real-Time Updates** - Perubahan data langsung terlihat tanpa refresh
-- ✅ **Distributed System** - 3 Laravel app instances dengan load balancing
 - ✅ **Check-In/Out** - Absensi masuk dan keluar dengan timestamp otomatis
 - ✅ **Status Detection** - Deteksi otomatis status terlambat/tepat waktu
 - ✅ **Live Dashboard** - Dashboard dengan statistik real-time
 - ✅ **History** - Riwayat absensi dengan pagination dan filter
-- ✅ **Node Tracking** - Tracking server mana yang memproses request
+- ✅ **Browser Notifications** - Notifikasi desktop untuk attendance baru
 - ✅ **Authentication** - Laravel Fortify dengan 2FA support
 
 ---
@@ -127,28 +135,16 @@ docker exec laravel_absensi_app_1 php artisan migrate --seed
 
 ## 📚 Documentation
 
-### 🚀 Quick Links
+### 📚 Documentation
 
 | Document | Description |
 |----------|-------------|
-| [docs/QUICK-START.md](docs/QUICK-START.md) | ⚡ 5-minute setup guide |
-| [docs/ADMIN-PANEL.md](docs/ADMIN-PANEL.md) | 🎛️ Admin panel complete guide |
-| [docs/FLOWCHART.md](docs/FLOWCHART.md) | 🔄 System flow diagrams |
-| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 🔧 Common issues & fixes |
-
-### 📖 Complete Documentation
-
-| Document | Description |
-|----------|-------------|
-| [Getting Started](docs/GETTING-STARTED.md) | Detailed setup guide |
-| [Architecture](docs/ARCHITECTURE.md) | System architecture & design |
-| [Flowchart](docs/FLOWCHART.md) | Complete system flows |
-| [Development](docs/DEVELOPMENT.md) | Development workflow |
-| [Inertia Guide](docs/INERTIA-DEVELOPMENT.md) | Inertia.js patterns |
-| [Admin Panel](docs/ADMIN-PANEL.md) | Admin features & testing |
-| [Deployment](docs/DEPLOYMENT.md) | Production deployment |
-| [Security](docs/SECURITY.md) | ⚠️ Security guidelines |
-| [Changelog](docs/CHANGELOG.md) | Version history |
+| [Getting Started](docs/GETTING-STARTED.md) | ⚡ Setup & installation guide |
+| [Distributed System](docs/DISTRIBUTED_SYSTEM.md) | 🌐 Multi-node architecture & testing |
+| [Troubleshooting](docs/TROUBLESHOOTING.md) | 🔧 Common issues & solutions |
+| [Deployment](docs/DEPLOYMENT.md) | 🚀 Production deployment guide |
+| [Security](docs/SECURITY.md) | 🔒 Security best practices |
+| [Changelog](docs/CHANGELOG.md) | 📝 Version history |
 
 **Start here:** [docs/README.md](docs/README.md) - Complete documentation index
 
@@ -179,10 +175,24 @@ docker exec laravel_absensi_app_1 php artisan migrate --seed
 
 ## 🧪 Test Real-Time
 
-1. Open 2 browser tabs
-2. **Tab 1:** Login as `user1@example.com`, click "Check In"
-3. **Tab 2:** Login as `user2@example.com`, watch dashboard
-4. ✨ **Tab 2 auto-updates without refresh!**
+### Test Distributed System
+1. Start Docker: `docker-compose up -d`
+2. Open 3 browser tabs ke `http://localhost/admin/dashboard`
+3. Login sebagai admin di semua tab
+4. Di tab ke-4, check-in di `http://localhost/attendances`
+5. ✨ **Semua dashboard update otomatis tanpa refresh!**
+
+### Test Load Balancing
+1. Refresh halaman beberapa kali
+2. Cek logs: `docker-compose logs -f app_1 app_2 app_3`
+3. ✨ **Request didistribusikan ke 3 node berbeda!**
+
+### Test Node Failure
+1. Stop satu node: `docker-compose stop app_2`
+2. Akses `http://localhost` - masih bisa diakses
+3. ✨ **Sistem tetap berjalan dengan 2 node aktif!**
+
+**Panduan lengkap:** [docs/DISTRIBUTED_SYSTEM.md](docs/DISTRIBUTED_SYSTEM.md)
 
 ---
 

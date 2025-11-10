@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import { Users, Calendar, Clock, TrendingUp } from 'lucide-vue-next';
 
@@ -16,6 +16,7 @@ interface Attendance {
     check_in: string;
     check_out: string | null;
     status: string;
+    node_id?: number;
     user: {
         name: string;
         email: string;
@@ -29,28 +30,32 @@ interface Props {
 
 const props = defineProps<Props>();
 
+// Local reactive state untuk real-time updates
+const localStats = ref({ ...props.stats });
+const localAttendances = ref([...props.recent_attendances]);
+
 const statCards = computed(() => [
     {
         name: 'Total Users',
-        value: props.stats.total_users,
+        value: localStats.value.total_users,
         icon: Users,
         color: 'blue',
     },
     {
         name: 'Total Attendances',
-        value: props.stats.total_attendances,
+        value: localStats.value.total_attendances,
         icon: Calendar,
         color: 'green',
     },
     {
         name: 'Today Check-ins',
-        value: props.stats.today_attendances,
+        value: localStats.value.today_attendances,
         icon: Clock,
         color: 'purple',
     },
     {
         name: 'On Time Today',
-        value: props.stats.on_time_today,
+        value: localStats.value.on_time_today,
         icon: TrendingUp,
         color: 'emerald',
     },
@@ -70,6 +75,92 @@ const formatDate = (datetime: string) => {
         year: 'numeric',
     });
 };
+
+// Real-time WebSocket listeners
+onMounted(() => {
+    console.log('Admin Dashboard: Subscribing to attendance channel...');
+    
+    window.Echo.channel('attendances')
+        .listen('.attendance.created', (event: any) => {
+            console.log('Admin Dashboard: New attendance received', event);
+            
+            // Update stats
+            localStats.value.total_attendances++;
+            localStats.value.today_attendances++;
+            if (event.attendance.status === 'on_time') {
+                localStats.value.on_time_today++;
+            } else {
+                localStats.value.late_today++;
+            }
+            
+            // Tambahkan ke recent attendances
+            const newAttendance: Attendance = {
+                id: event.attendance.id,
+                check_in: event.attendance.check_in,
+                check_out: null,
+                status: event.attendance.status,
+                node_id: event.attendance.node_id,
+                user: event.user,
+            };
+            
+            localAttendances.value.unshift(newAttendance);
+            
+            // Batasi hanya 10 recent attendances
+            if (localAttendances.value.length > 10) {
+                localAttendances.value.pop();
+            }
+            
+            // Show notification
+            showNotification(
+                `✅ ${event.user.name} check-in dari Node ${event.attendance.node_id}`,
+                event.attendance.status === 'on_time' ? 'success' : 'warning'
+            );
+        })
+        .listen('.attendance.updated', (event: any) => {
+            console.log('Admin Dashboard: Attendance updated', event);
+            
+            // Update attendance di list
+            const index = localAttendances.value.findIndex(a => a.id === event.attendance.id);
+            if (index !== -1) {
+                localAttendances.value[index] = {
+                    ...localAttendances.value[index],
+                    check_out: event.attendance.check_out,
+                    status: event.attendance.status,
+                };
+                
+                showNotification(
+                    `🏁 ${event.user.name} check-out dari Node ${event.attendance.node_id}`,
+                    'info'
+                );
+            }
+        });
+});
+
+onUnmounted(() => {
+    console.log('Admin Dashboard: Unsubscribing from attendance channel...');
+    window.Echo.leave('attendances');
+});
+
+// Helper untuk notifikasi
+const showNotification = (message: string, type: 'success' | 'warning' | 'info' = 'info') => {
+    // Browser notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Attendance System', { 
+            body: message,
+            icon: '/favicon.ico'
+        });
+    }
+    
+    // Console log untuk debugging
+    console.log(`[${type.toUpperCase()}] ${message}`);
+};
+
+// Request notification permission saat mount
+onMounted(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+});
 </script>
 
 <template>
@@ -139,9 +230,9 @@ const formatDate = (datetime: string) => {
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         <tr
-                            v-for="attendance in recent_attendances"
+                            v-for="attendance in localAttendances"
                             :key="attendance.id"
-                            class="hover:bg-gray-50"
+                            class="hover:bg-gray-50 transition-colors"
                         >
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div>
