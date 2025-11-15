@@ -1,6 +1,56 @@
 # Sistem Absensi Real-Time Terdistribusi
 
-Sistem absensi karyawan berbasis web dengan arsitektur terdistribusi (distributed system) yang menggunakan Laravel 12, Laravel Reverb (WebSocket), Redis pub/sub, dan Nginx load balancer. Sistem ini dirancang untuk ketersediaan tinggi (high availability), toleransi kesalahan (fault tolerance), dan sinkronisasi real-time di seluruh node.
+<div align="center">
+
+![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=for-the-badge&logo=php&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7.0+-DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-20.10+-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?style=for-the-badge&logo=nginx&logoColor=white)
+
+**Sistem absensi karyawan modern dengan arsitektur terdistribusi, real-time synchronization, dan high availability**
+
+[Fitur](#-fitur-utama) • [Demo](#-mulai-cepat-docker) • [Dokumentasi](#-instalasi) • [Arsitektur](#-arsitektur-sistem-terdistribusi)
+
+</div>
+
+---
+
+## 📖 Tentang Proyek
+
+Sistem Absensi Real-Time Terdistribusi adalah aplikasi web enterprise-grade yang dibangun dengan **Laravel 12** dan **Laravel Reverb** untuk mengelola absensi karyawan dengan kemampuan real-time updates dan high availability. Proyek ini mendemonstrasikan implementasi **distributed system architecture** dengan multiple application nodes, load balancing, dan event-driven communication.
+
+### 🎯 Tujuan Proyek
+
+- **Production-Ready**: Sistem yang siap digunakan untuk kebutuhan absensi perusahaan dengan ratusan karyawan
+- **Learning Resource**: Referensi implementasi distributed system, WebSocket, dan Redis pub/sub di Laravel
+- **Scalable Architecture**: Desain yang dapat di-scale horizontal dengan menambahkan lebih banyak nodes
+- **Modern Tech Stack**: Menggunakan teknologi terkini seperti Laravel 12, Reverb, Alpine.js, dan Tailwind CSS
+
+### ✨ Keunggulan
+
+- ⚡ **Real-Time Updates** - Dashboard admin terupdate otomatis saat ada absensi baru tanpa refresh
+- 🔄 **Distributed System** - 3 application nodes dengan load balancing untuk high availability
+- 🛡️ **Fault Tolerant** - Sistem tetap berjalan meskipun ada node yang gagal
+- 📍 **Geolocation Tracking** - Mencatat lokasi GPS saat absensi masuk dan pulang
+- 📊 **Analytics Dashboard** - Metrics dan visualisasi data absensi real-time
+- 🐳 **Docker Ready** - Deploy dalam hitungan menit dengan Docker Compose
+- 🎨 **Modern UI/UX** - Interface yang clean dan responsive dengan Tailwind CSS
+
+### 🏗️ Arsitektur Singkat
+
+```
+Browser ←→ Nginx Load Balancer ←→ [Laravel Node 1, Node 2, Node 3]
+                                           ↓
+                                    Redis Pub/Sub ←→ Reverb WebSocket
+                                           ↓
+                                    MySQL Database
+```
+
+Sistem menggunakan **Redis pub/sub** untuk komunikasi antar-node dan **Laravel Reverb** untuk WebSocket connections, memungkinkan sinkronisasi real-time di seluruh nodes dengan eventual consistency model.
+
+---
 
 ## ⚡ Mulai Cepat (Docker)
 
