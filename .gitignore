@@ -50,6 +50,12 @@ database/database.sqlite
 
 # Docker
 docker-compose.override.yml
+# Keep docker/ folder files in git
+!docker/
+!docker/.env.docker
+!docker/deploy.sh
+!docker/deploy.bat
+!docker/README.md
 
 # Scripts logs (if any)
 /storage/logs/*.pid

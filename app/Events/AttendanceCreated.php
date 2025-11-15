@@ -34,8 +34,10 @@ class AttendanceCreated implements ShouldBroadcast
                 'name' => $this->attendance->user->name,
                 'role' => $this->attendance->user->role,
             ],
-            'type' => $this->attendance->type,
-            'timestamp' => $this->attendance->timestamp->toISOString(),
+            'date' => $this->attendance->date->format('Y-m-d'),
+            'jam_masuk' => $this->attendance->jam_masuk?->format('H:i:s'),
+            'jam_pulang' => $this->attendance->jam_pulang?->format('H:i:s'),
+            'status' => $this->attendance->status,
             'node_id' => $this->attendance->node_id,
             'created_at' => $this->attendance->created_at->toISOString(),
         ];

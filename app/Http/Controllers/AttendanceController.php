@@ -2,49 +2,100 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\AttendanceService;
+use App\Events\AbsensiCreated;
+use App\Services\AbsensiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class AttendanceController extends Controller
 {
-    public function __construct(private AttendanceService $attendanceService)
-    {
-    }
+    public function __construct(
+        private AbsensiService $absensiService
+    ) {}
 
-    public function store(Request $request)
+    /**
+     * Clock in (absen masuk)
+     */
+    public function clockIn(Request $request)
     {
-        if (!Auth::check()) {
+        $validated = $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        try {
+            $attendance = $this->absensiService->clockIn(
+                Auth::id(),
+                $validated['latitude'],
+                $validated['longitude']
+            );
+
+            // Broadcast event
+            event(new AbsensiCreated($attendance));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi masuk berhasil dicatat',
+                'data' => $attendance,
+            ]);
+
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Please login first',
-            ], 401);
+                'message' => $e->getMessage(),
+            ], 422);
         }
-
-        $validated = $request->validate([
-            'type' => 'required|in:in,out',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-        ]);
-
-        $result = $this->attendanceService->createAttendance([
-            'user_id' => Auth::id(),
-            'type' => $validated['type'],
-            'latitude' => $validated['latitude'] ?? null,
-            'longitude' => $validated['longitude'] ?? null,
-            'timestamp' => now(),
-        ]);
-
-        if ($result['success']) {
-            return response()->json($result);
-        }
-
-        return response()->json($result, 422);
     }
 
-    public function index()
+    /**
+     * Clock out (absen pulang)
+     */
+    public function clockOut(Request $request)
     {
-        $attendances = $this->attendanceService->getTodayAttendances();
-        return response()->json($attendances);
+        $validated = $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        try {
+            $attendance = $this->absensiService->clockOut(
+                Auth::id(),
+                $validated['latitude'],
+                $validated['longitude']
+            );
+
+            // Broadcast event
+            event(new AbsensiCreated($attendance));
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Absensi pulang berhasil dicatat',
+                'data' => $attendance,
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Get today's attendance status for current user
+     */
+    public function status()
+    {
+        $attendance = $this->absensiService->getTodayAttendance(Auth::id());
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'has_clock_in' => $attendance !== null,
+                'has_clock_out' => $attendance?->jam_pulang !== null,
+                'attendance' => $attendance,
+            ],
+        ]);
     }
 }

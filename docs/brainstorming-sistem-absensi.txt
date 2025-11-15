@@ -2,6 +2,35 @@
 BRAINSTORMING: SISTEM ABSENSI REAL-TIME TERDISTRIBUSI
 ================================================================================
 Tanggal: 10 November 2025
+Update Terakhir: 14 November 2025
+
+================================================================================
+LATAR BELAKANG
+================================================================================
+
+Pada sistem absensi konvensional, data absensi biasanya hanya disimpan di satu 
+server. Hal ini sering menimbulkan masalah, terutama jika ada beberapa cabang 
+atau lokasi yang berbeda. Misalnya, ketika karyawan absen di kantor cabang A, 
+data tersebut tidak langsung terlihat di kantor pusat atau cabang lain. 
+Akibatnya, proses monitoring menjadi tidak efisien dan data bisa tidak sinkron.
+
+================================================================================
+TUJUAN PROYEK
+================================================================================
+
+Tujuan dari proyek ini adalah membuat website absensi yang dapat diakses dari 
+beberapa node server dan setiap data absensi yang masuk akan otomatis muncul 
+di semua server tanpa perlu refresh halaman.
+
+Dengan cara ini, kami ingin menunjukkan bagaimana konsep sistem terdistribusi 
+dan sinkronisasi data real-time dapat diterapkan dalam aplikasi web.
+
+PRINSIP UTAMA:
+1. Multi-node accessibility - Sistem dapat diakses dari beberapa server/node
+2. Real-time synchronization - Data absensi muncul otomatis tanpa refresh
+3. High availability - Jika satu server/container down, sistem tetap berjalan 
+   menggunakan server/container lainnya
+4. Clean architecture - Sistem berjalan sesuai dengan tujuan sebenarnya
 
 ================================================================================
 KONSEP AWAL
@@ -11,6 +40,7 @@ Proyek: Sistem absensi real-time terdistribusi dengan fokus utama pada:
 - Penerapan konsep sistem terdistribusi
 - Sinkronisasi data antar node
 - Komunikasi realtime antar pengguna dan server
+- High availability dan fault tolerance
 
 ================================================================================
 TECH STACK PILIHAN
@@ -100,6 +130,15 @@ KEPUTUSAN ARSITEKTUR
    - Queue di-persist ke Redis (survive restart)
    - WebSocket auto-reconnect dengan exponential backoff
    - Health check setiap 10 detik
+   - Nginx load balancer otomatis route ke node yang sehat
+   - Shared database (MySQL) memastikan data consistency
+   
+   Skenario Failure:
+   - 1 node down → Traffic dialihkan ke 2 node lainnya (sistem tetap 100% operasional)
+   - 2 node down → Traffic ke 1 node tersisa (sistem tetap operasional, performa menurun)
+   - Redis down → Queue dan cache hilang, tapi absensi tetap bisa (degraded mode)
+   - MySQL down → Sistem tidak bisa terima absensi baru (critical failure)
+   - Reverb down → Real-time update hilang, tapi absensi tetap bisa (perlu manual refresh)
 
 5. MVP FEATURE SET
    
@@ -186,7 +225,248 @@ Dengan setup ini, sistem dapat mendemonstrasikan:
 - Data synchronization
 - Conflict handling
 - System resilience
+- High availability (sistem tetap jalan meski ada node yang down)
+- Fault tolerance (graceful degradation)
+
+================================================================================
+CATATAN PENTING
+================================================================================
+
+STRUKTUR FILE:
+- Semua dokumentasi brainstorming disimpan di folder /docs
+- Jangan biarkan root project dipenuhi file yang tidak penting
+- Setiap perubahan rencana harus diupdate di file brainstorming ini terlebih dahulu
+- File ini menjadi single source of truth untuk keputusan arsitektur
+
+PRINSIP DEVELOPMENT:
+- Clean architecture - setiap komponen punya tanggung jawab yang jelas
+- Sistem harus berjalan sesuai tujuan sebenarnya (real distributed system)
+- Prioritas: Functionality > Performance > Aesthetics
+- Test failure scenarios untuk memastikan high availability bekerja
 
 ================================================================================
 END OF DOCUMENT
 ================================================================================
+
+
+================================================================================
+UI/UX DESIGN
+================================================================================
+
+HALAMAN UTAMA:
+
+1. DASHBOARD ADMIN
+   Layout:
+   - Sidebar kiri: Logo sistem, menu navigasi (Dashboard, Riwayat, Tentang Sistem)
+   - Header: Judul halaman, tanggal, notifikasi, user profile (Admin/Administrator)
+   - Content area: Cards dan informasi utama
+   
+   Komponen Dashboard:
+   - 4 Metric Cards (warna berbeda):
+     * Absensi Hari Ini (biru) - Jumlah karyawan yang sudah absen
+     * Minggu Ini (hijau) - Total absensi minggu ini
+     * Tingkat Kehadiran (ungu) - Persentase kehadiran
+     * Server Online (orange) - Status server aktif (3/4)
+   
+   - Panel "Absensi Terbaru" (Real-time):
+     * Indicator "Live" (hijau) untuk menunjukkan data real-time
+     * List absensi terbaru dengan foto, nama, waktu, status (Masuk)
+     * Auto-update tanpa refresh
+   
+   - Panel "Status Server":
+     * List server dengan lokasi (Jakarta, Bandung, Surabaya, Bali)
+     * Status Online/Offline dengan indicator warna (hijau/merah)
+     * Info sinkronisasi terakhir (X detik/menit lalu)
+
+2. RIWAYAT ABSENSI
+   Layout:
+   - Header: "Riwayat Absensi" dengan subtitle
+   - Filter section:
+     * Search box: "Cari berdasarkan nama..."
+     * Date picker: "Filter Tanggal"
+     * Button Export
+   
+   - Table dengan kolom:
+     * Tanggal
+     * Nama
+     * Jam Masuk
+     * Jam Pulang
+     * Durasi (8j 55m)
+     * Status (Hadir/Terlambat/Alpha) dengan badge berwarna
+
+3. TENTANG SISTEM
+   Layout:
+   - Hero section dengan icon sistem
+   - Judul: "Sistem Absensi Real-Time Terdistribusi"
+   - Deskripsi: Platform absensi modern dengan arsitektur terdistribusi
+   
+   - Card "Tujuan Proyek" (biru):
+     * Penjelasan lengkap tujuan implementasi
+     * Highlight: ketersediaan data, high availability, konsistensi data
+   
+   - Section "Teknologi yang Digunakan":
+     * Cards dengan icon untuk setiap teknologi
+     * Laravel (merah), Redis (merah), MySQL/SQLite (kuning), dll.
+
+DESIGN SYSTEM:
+
+Color Palette:
+- Primary: Blue (#3B82F6)
+- Success: Green (#10B981)
+- Warning: Yellow/Orange (#F59E0B)
+- Danger: Red (#EF4444)
+- Purple: (#A855F7)
+- Dark Background: (#1E293B, #0F172A)
+- Text: White/Light gray
+
+Typography:
+- Clean, modern sans-serif
+- Hierarchy jelas (heading, body, caption)
+
+Components:
+- Rounded corners untuk cards dan buttons
+- Shadow untuk depth
+- Badge dengan warna sesuai status
+- Icons dari library modern (Lucide/Heroicons)
+
+Interactivity:
+- Hover effects pada buttons dan cards
+- Smooth transitions
+- Real-time indicators (dot hijau "Live")
+- Loading states untuk async operations
+
+RESPONSIVE DESIGN:
+- Mobile-first approach
+- Sidebar collapse pada mobile
+- Table menjadi cards pada mobile
+- Touch-friendly button sizes
+
+
+================================================================================
+ROLE & PERMISSION SYSTEM
+================================================================================
+
+ROLE TYPES:
+
+1. ADMIN/ADMINISTRATOR
+   Akses:
+   - Dashboard Admin (lihat semua data)
+   - Riwayat Absensi (semua karyawan)
+   - Tentang Sistem
+   - Monitoring status server
+   - Export data
+   
+   Fitur Khusus:
+   - Lihat real-time absensi semua karyawan
+   - Monitoring server status
+   - Akses ke semua data historis
+   - Analytics dan reporting
+
+2. KARYAWAN/USER
+   Akses:
+   - Portal Karyawan (dashboard personal)
+   - Absensi (masuk/pulang)
+   - Riwayat Absensi (hanya data pribadi)
+   - Tentang Sistem
+   
+   Fitur Khusus:
+   - Hanya bisa lihat data absensi sendiri
+   - Tidak bisa lihat data karyawan lain
+   - Tidak bisa akses monitoring server
+   - Absen masuk/pulang dengan geolocation
+
+AUTHENTICATION & AUTHORIZATION:
+- Login dengan email & password
+- Session-based authentication
+- Middleware untuk role checking
+- Route protection berdasarkan role
+
+================================================================================
+UI/UX DESIGN - PORTAL KARYAWAN
+================================================================================
+
+4. DASHBOARD KARYAWAN (Portal Karyawan)
+   Layout:
+   - Sidebar kiri: Logo sistem, menu navigasi (Absensi, Riwayat, Tentang Sistem)
+   - Header: "Portal Karyawan", tanggal, notifikasi, user profile (nama + role)
+   - Content area: Personal dashboard
+   
+   Hero Section (Card biru):
+   - Greeting: "Halo, [nama_karyawan]!"
+   - Tanggal hari ini
+   - Lokasi: "Jakarta Pusat" (dari geolocation)
+   - Button: "Belum Absen" (call-to-action)
+   
+   Absensi Actions (2 Cards):
+   
+   a) Card "Absen Masuk" (biru):
+      - Icon: Arrow masuk
+      - Judul: "Absen Masuk"
+      - Deskripsi: "Klik tombol di bawah untuk mencatat waktu kedatangan Anda"
+      - Button: "Absen Masuk" (primary blue)
+      - State: Aktif sebelum absen masuk
+   
+   b) Card "Absen Pulang" (orange/disabled):
+      - Icon: Arrow keluar (gray)
+      - Judul: "Absen Pulang"
+      - Deskripsi: "Klik tombol di bawah untuk mencatat waktu kepulangan Anda"
+      - Button: "Absen Pulang" (disabled/orange)
+      - Note: "Absen masuk terlebih dahulu"
+      - State: Disabled sampai user sudah absen masuk
+   
+   Info Section:
+   - Card "Sistem Sinkronisasi Real-Time"
+   - Penjelasan tentang sistem terdistribusi
+   - Informasi bahwa data akan tersinkronisasi otomatis
+
+5. RIWAYAT ABSENSI KARYAWAN
+   Layout:
+   - Header: "Riwayat Absensi" dengan subtitle "Lihat riwayat absensi Anda"
+   - Filter section:
+     * Date picker: "Filter Tanggal"
+     * Button Export (untuk data pribadi)
+   
+   - Table dengan kolom:
+     * Tanggal
+     * Nama (hanya nama user yang login)
+     * Jam Masuk
+     * Jam Pulang
+     * Durasi
+     * Status (Hadir/Terlambat/Alpha)
+   
+   - Empty state: "Tidak ada data riwayat ditemukan"
+   - Pagination: "Menampilkan 0 dari 0 data"
+
+BUSINESS LOGIC - ABSENSI FLOW:
+
+1. Absen Masuk:
+   - User klik "Absen Masuk"
+   - Sistem request geolocation permission
+   - Capture: timestamp, latitude, longitude, node_id
+   - Simpan ke database
+   - Broadcast event ke semua node (real-time)
+   - Button "Absen Masuk" disabled
+   - Button "Absen Pulang" enabled
+   - Show success notification
+
+2. Absen Pulang:
+   - Button hanya aktif setelah absen masuk
+   - User klik "Absen Pulang"
+   - Capture: timestamp, latitude, longitude
+   - Update record absensi hari ini
+   - Calculate durasi kerja
+   - Broadcast event ke semua node
+   - Show success notification
+
+3. Validasi:
+   - Cek apakah sudah absen hari ini (prevent duplicate)
+   - Validasi geolocation (optional: radius check)
+   - Validasi waktu (tidak bisa absen pulang sebelum masuk)
+   - Conflict resolution: First-Write-Wins
+
+DATA ISOLATION:
+- Setiap user hanya bisa query data dengan WHERE user_id = auth()->id()
+- Policy/Gate untuk enforce authorization
+- API endpoint terpisah untuk admin vs user
+- Middleware untuk validasi akses data
+

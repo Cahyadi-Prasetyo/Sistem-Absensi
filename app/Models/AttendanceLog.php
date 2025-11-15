@@ -11,19 +11,30 @@ class AttendanceLog extends Model
 
     protected $fillable = [
         'attendance_id',
+        'user_id',
         'event_type',
+        'event_data',
         'node_id',
-        'payload',
-        'created_at',
+        'performed_by',
     ];
 
     protected $casts = [
-        'payload' => 'array',
+        'event_data' => 'array',
         'created_at' => 'datetime',
     ];
 
     public function attendance(): BelongsTo
     {
         return $this->belongsTo(Attendance::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function performedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'performed_by');
     }
 }

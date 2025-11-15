@@ -1,15 +1,68 @@
 node_modules
 vendor
 .git
-.env
-.env.example
-storage/logs/*
-storage/framework/cache/*
-storage/framework/sessions/*
-storage/framework/views/*
-bootstrap/cache/*
-.editorconfig
-.gitattributes
 .gitignore
+.gitattributes
+.editorconfig
+
+# Environment files
+.env
+.env.*
+!.env.production
+!docker/.env.docker
+
+# Storage (will be created in container)
+storage/logs/*
+!storage/logs/.gitignore
+storage/framework/cache/*
+!storage/framework/cache/.gitignore
+storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+storage/framework/views/*
+!storage/framework/views/.gitignore
+storage/app/*
+!storage/app/.gitignore
+!storage/app/public
+
+# Bootstrap cache
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Build artifacts
+public/hot
+public/storage
+public/build/*
+
+# Documentation
 README.md
+docs/
+*.md
+
+# Docker files (not needed inside container)
 docker-compose.yml
+docker-compose.*.yml
+Dockerfile
+.dockerignore
+docker/deploy.sh
+docker/deploy.bat
+docker/README.md
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Development tools
+.php-cs-fixer.cache
+.php-cs-fixer.php

@@ -18,7 +18,7 @@
                     <h1 class="text-xl font-bold text-gray-800">Sistem Absensi Real-time</h1>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-600">Node: <span class="font-mono font-bold">{{ $nodeId ?? 'unknown' }}</span></span>
+                    <span class="text-sm text-black-600">Node: <span class="font-mono font-bold">{{ $nodeId ?? 'unknown' }}</span></span>
                 </div>
             </div>
         </div>

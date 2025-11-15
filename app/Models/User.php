@@ -56,4 +56,14 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function isKaryawan(): bool
+    {
+        return $this->role === 'karyawan';
+    }
+
+    public function attendanceLogs()
+    {
+        return $this->hasMany(AttendanceLog::class);
+    }
 }

@@ -14,13 +14,17 @@ return new class extends Migration
         Schema::create('attendance_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('attendance_id')->nullable()->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('event_type');
+            $table->json('event_data')->nullable();
             $table->string('node_id')->nullable();
-            $table->json('payload')->nullable();
-            $table->timestamp('created_at');
+            $table->foreignId('performed_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->timestamp('created_at')->useCurrent();
             
             $table->index('attendance_id');
+            $table->index('user_id');
             $table->index('event_type');
+            $table->index('node_id');
         });
     }
 

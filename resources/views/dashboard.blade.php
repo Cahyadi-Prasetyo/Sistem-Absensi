@@ -146,12 +146,25 @@ function attendanceApp() {
         },
 
         connectWebSocket() {
-            this.echo = window.Echo.channel('attendances')
-                .listen('AttendanceCreated', (e) => {
-                    console.log('New attendance received:', e);
-                    this.attendances.unshift(e);
-                    this.connected = true;
-                });
+            // Check if Echo is available
+            if (!window.Echo) {
+                console.warn('⚠️ Echo not available yet, will retry...');
+                setTimeout(() => this.connectWebSocket(), 1000);
+                return;
+            }
+            
+            try {
+                this.echo = window.Echo.channel('attendances')
+                    .listen('AttendanceCreated', (e) => {
+                        console.log('New attendance received:', e);
+                        this.attendances.unshift(e);
+                        this.connected = true;
+                    });
+                console.log('✅ WebSocket connected to attendances channel');
+            } catch (error) {
+                console.error('❌ Failed to connect WebSocket:', error);
+                setTimeout(() => this.connectWebSocket(), 2000);
+            }
         },
 
         async measureLatency() {

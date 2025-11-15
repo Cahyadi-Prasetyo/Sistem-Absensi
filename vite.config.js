@@ -10,4 +10,12 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                entryFileNames: 'assets/app.js',
+                assetFileNames: 'assets/app.css'
+            }
+        }
+    }
 });
