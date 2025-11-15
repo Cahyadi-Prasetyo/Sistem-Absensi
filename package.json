@@ -1,5 +1,7 @@
 {
     "$schema": "https://json.schemastore.org/package.json",
+    "name": "sistem-absensi",
+    "description": "Sistem Absensi Real-Time dengan Laravel Reverb",
     "private": true,
     "type": "module",
     "scripts": {
