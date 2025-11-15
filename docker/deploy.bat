@@ -27,13 +27,31 @@ if errorlevel 1 (
 echo [OK] Docker and Docker Compose are installed
 echo.
 
-REM Check if .env file exists
-if not exist .env (
-    echo [WARNING] .env file not found, copying from docker\.env.docker
-    copy docker\.env.docker .env
-    echo [OK] .env file created
+REM Check if docker/.env.docker exists
+if not exist docker\.env.docker (
+    echo [WARNING] docker\.env.docker not found, copying from example
+    copy docker\.env.docker.example docker\.env.docker
+    echo ERROR: Please configure docker\.env.docker with your credentials
+    echo Required settings:
+    echo   - APP_KEY (run: php artisan key:generate)
+    echo   - DB_PASSWORD
+    echo   - MYSQL_ROOT_PASSWORD
+    echo   - REVERB_APP_KEY
+    echo   - REVERB_APP_SECRET
+    pause
+    exit /b 1
 ) else (
-    echo [OK] .env file exists
+    echo [OK] docker\.env.docker exists
+)
+
+REM Check if APP_KEY is set
+findstr /C:"APP_KEY=base64:" docker\.env.docker >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: APP_KEY is not set in docker\.env.docker
+    echo Run: php artisan key:generate
+    echo Then copy the generated key to docker\.env.docker
+    pause
+    exit /b 1
 )
 
 echo.
@@ -55,7 +73,7 @@ set attempt=0
 
 :mysql_check
 set /a attempt+=1
-docker-compose exec -T mysql mysqladmin ping -h localhost -u root -proot_secret --silent >nul 2>&1
+docker-compose exec -T mysql mysqladmin ping -h localhost -u root --silent >nul 2>&1
 if errorlevel 1 (
     if !attempt! geq %max_attempts% (
         echo ERROR: MySQL failed to start

@@ -147,6 +147,12 @@ docker-compose exec app-node-1 php artisan db:seed --class=ResetDatabaseSeeder -
 
 ## 🛠️ Instalasi
 
+> **⚠️ PENTING - Keamanan:**
+> - File `.env` dan `docker/.env.docker` berisi credentials sensitif dan **TIDAK BOLEH** di-push ke repository
+> - Selalu gunakan file `.env.example` dan `docker/.env.docker.example` sebagai template
+> - Generate APP_KEY baru untuk setiap environment: `php artisan key:generate`
+> - Gunakan password yang kuat untuk database dan Reverb di production
+
 ### Opsi A: Deployment Docker (Sistem Terdistribusi)
 
 Ini adalah **pendekatan yang direkomendasikan** untuk merasakan arsitektur distributed system lengkap dengan multiple nodes, load balancing, dan Redis pub/sub.
@@ -156,9 +162,17 @@ Ini adalah **pendekatan yang direkomendasikan** untuk merasakan arsitektur distr
 git clone <repository-url>
 cd laravel-reverb-absensi
 ```
-2. Install dependencies:
-=======
-#### 2. Build dan Jalankan Semua Services
+
+#### 2. Setup Environment Variables
+```bash
+# Copy template environment file
+cp docker/.env.docker.example docker/.env.docker
+
+# Generate APP_KEY
+php artisan key:generate --show
+```
+
+#### 3. Build dan Jalankan Semua Services
 
 **Cara Otomatis (Recommended):**
 
@@ -185,7 +199,7 @@ Perintah tunggal ini akan menjalankan:
 - **1 MySQL Database**
 - **1 Redis Server**
 
-#### 3. Inisialisasi Database
+#### 4. Inisialisasi Database
 ```bash
 # Jalankan migrations dan seeders
 docker-compose exec app-node-1 php artisan migrate --force
@@ -348,7 +362,6 @@ Anda perlu menjalankan 4 services:
 php artisan serve
 ```
 
-<<<<<<< HEAD
 **Terminal 2 - Vite Dev Server:**
 ```bash
 npm run dev
@@ -592,19 +605,8 @@ docker-compose logs -f subscriber-node-1
 - **Email:** admin@absensi.com
 - **Password:** password
 
-### Karyawan (10 users)
+### Karyawan (1 users)
 - **Email:** andi.wijaya@absensi.com
-- **Email:** bella.safira@absensi.com
-- **Email:** citra.dewi@absensi.com
-- **Email:** doni.pratama@absensi.com
-- **Email:** eka.putri@absensi.com
-- **Email:** fajar.ramadhan@absensi.com
-- **Email:** gita.maharani@absensi.com
-- **Email:** hendra.gunawan@absensi.com
-- **Email:** indah.permata@absensi.com
-- **Email:** joko.susilo@absensi.com
-- **Password:** password (untuk semua)
-
 ## 📱 Cara Penggunaan
 
 ### Untuk Karyawan:
@@ -1032,7 +1034,7 @@ docker-compose exec app-node-1 php artisan health:check
 
 # Test koneksi database
 docker-compose exec app-node-1 php artisan tinker
->>> DB::connection()->getPdo();
+DB::connection()->getPdo();
 
 # Test koneksi Redis
 docker-compose exec redis redis-cli ping
@@ -1148,4 +1150,4 @@ Proyek ini mendemonstrasikan beberapa konsep distributed system:
 Dikembangkan dengan ❤️ menggunakan Laravel 12, Laravel Reverb, dan Docker
 
 **Arsitektur**: Sistem Terdistribusi dengan Load Balancing dan Sinkronisasi Real-Time
->>>>>>> dev
+

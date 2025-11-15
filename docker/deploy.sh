@@ -30,13 +30,28 @@ fi
 echo -e "${GREEN}✓ Docker and Docker Compose are installed${NC}"
 echo ""
 
-# Check if .env file exists, if not copy from docker/.env.docker
-if [ ! -f .env ]; then
-    echo -e "${YELLOW}⚠ .env file not found, copying from docker/.env.docker${NC}"
-    cp docker/.env.docker .env
-    echo -e "${GREEN}✓ .env file created${NC}"
+# Check if docker/.env.docker exists, if not copy from example
+if [ ! -f docker/.env.docker ]; then
+    echo -e "${YELLOW}⚠ docker/.env.docker not found, copying from example${NC}"
+    cp docker/.env.docker.example docker/.env.docker
+    echo -e "${RED}ERROR: Please configure docker/.env.docker with your credentials${NC}"
+    echo "Required settings:"
+    echo "  - APP_KEY (run: php artisan key:generate)"
+    echo "  - DB_PASSWORD"
+    echo "  - MYSQL_ROOT_PASSWORD"
+    echo "  - REVERB_APP_KEY"
+    echo "  - REVERB_APP_SECRET"
+    exit 1
 else
-    echo -e "${GREEN}✓ .env file exists${NC}"
+    echo -e "${GREEN}✓ docker/.env.docker exists${NC}"
+fi
+
+# Check if APP_KEY is set
+if ! grep -q "APP_KEY=base64:" docker/.env.docker; then
+    echo -e "${RED}ERROR: APP_KEY is not set in docker/.env.docker${NC}"
+    echo "Run: php artisan key:generate"
+    echo "Then copy the generated key to docker/.env.docker"
+    exit 1
 fi
 
 echo ""
@@ -56,7 +71,7 @@ echo "Checking MySQL connection..."
 max_attempts=30
 attempt=0
 
-until docker-compose exec -T mysql mysqladmin ping -h localhost -u root -proot_secret --silent &> /dev/null; do
+until docker-compose exec -T mysql mysqladmin ping -h localhost -u root --silent &> /dev/null; do
     attempt=$((attempt + 1))
     if [ $attempt -ge $max_attempts ]; then
         echo -e "${RED}ERROR: MySQL failed to start${NC}"

@@ -50,9 +50,10 @@ database/database.sqlite
 
 # Docker
 docker-compose.override.yml
+docker/.env.docker
 # Keep docker/ folder files in git
 !docker/
-!docker/.env.docker
+!docker/.env.docker.example
 !docker/deploy.sh
 !docker/deploy.bat
 !docker/README.md

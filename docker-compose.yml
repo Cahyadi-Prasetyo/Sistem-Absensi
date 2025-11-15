@@ -15,17 +15,17 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE: absensi
-      MYSQL_USER: absensi
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: root_secret
+      MYSQL_DATABASE: ${DB_DATABASE:-absensi}
+      MYSQL_USER: ${DB_USERNAME:-absensi}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_secret"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,33 +39,12 @@ services:
       context: .
       dockerfile: Dockerfile
     command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    env_file:
+      - docker/.env.docker
     environment:
       APP_NODE_ID: reverb-server
       APP_NAME: "Absensi Reverb Server"
-      APP_KEY: base64:WDa2nX5l2GxaD0Ixw9Ld7wR2zdsNWmdJM/F76Qqu0oU=
-      APP_ENV: local
-      APP_DEBUG: "true"
-      APP_URL: http://localhost
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: absensi
-      DB_USERNAME: absensi
-      DB_PASSWORD: secret
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: 123456
-      REVERB_APP_KEY: reverb-key
-      REVERB_APP_SECRET: reverb-secret
       REVERB_HOST: 0.0.0.0
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
-      VITE_REVERB_HOST: localhost
-      VITE_REVERB_PORT: 8080
-      VITE_REVERB_SCHEME: http
     ports:
       - "8080:8080"
     depends_on:
@@ -84,40 +63,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - docker/.env.docker
     environment:
       APP_NODE_ID: app-node-1
       APP_NAME: "Absensi Node 1"
-      APP_KEY: base64:WDa2nX5l2GxaD0Ixw9Ld7wR2zdsNWmdJM/F76Qqu0oU=
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: http://localhost
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: absensi
-      DB_USERNAME: absensi
-      DB_PASSWORD: secret
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_CLIENT: phpredis
-      CACHE_STORE: redis
-      CACHE_PREFIX: absensi_cache
-      SESSION_DRIVER: redis
-      SESSION_CONNECTION: default
-      SESSION_LIFETIME: 120
-      SESSION_COOKIE: absensi_session
-      SESSION_DOMAIN: null
-      QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: 123456
-      REVERB_APP_KEY: reverb-key
-      REVERB_APP_SECRET: reverb-secret
-      REVERB_HOST: reverb
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
-      VITE_REVERB_HOST: localhost
-      VITE_REVERB_PORT: 8080
-      VITE_REVERB_SCHEME: http
     volumes:
       - ./storage/logs:/var/www/html/storage/logs
       - public_data:/var/www/html/public
@@ -143,40 +93,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - docker/.env.docker
     environment:
       APP_NODE_ID: app-node-2
       APP_NAME: "Absensi Node 2"
-      APP_KEY: base64:WDa2nX5l2GxaD0Ixw9Ld7wR2zdsNWmdJM/F76Qqu0oU=
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: http://localhost
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: absensi
-      DB_USERNAME: absensi
-      DB_PASSWORD: secret
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_CLIENT: phpredis
-      CACHE_STORE: redis
-      CACHE_PREFIX: absensi_cache
-      SESSION_DRIVER: redis
-      SESSION_CONNECTION: default
-      SESSION_LIFETIME: 120
-      SESSION_COOKIE: absensi_session
-      SESSION_DOMAIN: null
-      QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: 123456
-      REVERB_APP_KEY: reverb-key
-      REVERB_APP_SECRET: reverb-secret
-      REVERB_HOST: reverb
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
-      VITE_REVERB_HOST: localhost
-      VITE_REVERB_PORT: 8080
-      VITE_REVERB_SCHEME: http
     volumes:
       - ./storage/logs:/var/www/html/storage/logs
     depends_on:
@@ -201,40 +122,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - docker/.env.docker
     environment:
       APP_NODE_ID: app-node-3
       APP_NAME: "Absensi Node 3"
-      APP_KEY: base64:WDa2nX5l2GxaD0Ixw9Ld7wR2zdsNWmdJM/F76Qqu0oU=
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: http://localhost
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: absensi
-      DB_USERNAME: absensi
-      DB_PASSWORD: secret
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_CLIENT: phpredis
-      CACHE_STORE: redis
-      CACHE_PREFIX: absensi_cache
-      SESSION_DRIVER: redis
-      SESSION_CONNECTION: default
-      SESSION_LIFETIME: 120
-      SESSION_COOKIE: absensi_session
-      SESSION_DOMAIN: null
-      QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: 123456
-      REVERB_APP_KEY: reverb-key
-      REVERB_APP_SECRET: reverb-secret
-      REVERB_HOST: reverb
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
-      VITE_REVERB_HOST: localhost
-      VITE_REVERB_PORT: 8080
-      VITE_REVERB_SCHEME: http
     volumes:
       - ./storage/logs:/var/www/html/storage/logs
     depends_on:
@@ -260,33 +152,11 @@ services:
       context: .
       dockerfile: Dockerfile
     command: php artisan redis:subscribe
+    env_file:
+      - docker/.env.docker
     environment:
       APP_NODE_ID: subscriber-node-1
       APP_NAME: "Absensi Subscriber Node 1"
-      APP_KEY: base64:WDa2nX5l2GxaD0Ixw9Ld7wR2zdsNWmdJM/F76Qqu0oU=
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: http://localhost
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: absensi
-      DB_USERNAME: absensi
-      DB_PASSWORD: secret
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: 123456
-      REVERB_APP_KEY: reverb-key
-      REVERB_APP_SECRET: reverb-secret
-      REVERB_HOST: reverb
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
-      VITE_REVERB_HOST: localhost
-      VITE_REVERB_PORT: 8080
-      VITE_REVERB_SCHEME: http
     volumes:
       - ./storage/logs:/var/www/html/storage/logs
     depends_on:
@@ -306,33 +176,11 @@ services:
       context: .
       dockerfile: Dockerfile
     command: php artisan redis:subscribe
+    env_file:
+      - docker/.env.docker
     environment:
       APP_NODE_ID: subscriber-node-2
       APP_NAME: "Absensi Subscriber Node 2"
-      APP_KEY: base64:WDa2nX5l2GxaD0Ixw9Ld7wR2zdsNWmdJM/F76Qqu0oU=
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: http://localhost
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: absensi
-      DB_USERNAME: absensi
-      DB_PASSWORD: secret
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: 123456
-      REVERB_APP_KEY: reverb-key
-      REVERB_APP_SECRET: reverb-secret
-      REVERB_HOST: reverb
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
-      VITE_REVERB_HOST: localhost
-      VITE_REVERB_PORT: 8080
-      VITE_REVERB_SCHEME: http
     volumes:
       - ./storage/logs:/var/www/html/storage/logs
     depends_on:
@@ -352,33 +200,11 @@ services:
       context: .
       dockerfile: Dockerfile
     command: php artisan redis:subscribe
+    env_file:
+      - docker/.env.docker
     environment:
       APP_NODE_ID: subscriber-node-3
       APP_NAME: "Absensi Subscriber Node 3"
-      APP_KEY: base64:WDa2nX5l2GxaD0Ixw9Ld7wR2zdsNWmdJM/F76Qqu0oU=
-      APP_ENV: production
-      APP_DEBUG: "false"
-      APP_URL: http://localhost
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: absensi
-      DB_USERNAME: absensi
-      DB_PASSWORD: secret
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      CACHE_STORE: redis
-      QUEUE_CONNECTION: redis
-      BROADCAST_CONNECTION: reverb
-      REVERB_APP_ID: 123456
-      REVERB_APP_KEY: reverb-key
-      REVERB_APP_SECRET: reverb-secret
-      REVERB_HOST: reverb
-      REVERB_PORT: 8080
-      REVERB_SCHEME: http
-      VITE_REVERB_HOST: localhost
-      VITE_REVERB_PORT: 8080
-      VITE_REVERB_SCHEME: http
     volumes:
       - ./storage/logs:/var/www/html/storage/logs
     depends_on:
