@@ -29,6 +29,7 @@ Route::middleware('auth')->group(function () {
     // Admin routes
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/riwayat', [\App\Http\Controllers\RiwayatController::class, 'adminIndex'])->name('admin.riwayat');
+        Route::get('/api/admin/riwayat/today', [\App\Http\Controllers\RiwayatController::class, 'todayJson'])->name('api.admin.riwayat.today');
         
         // User Management
         Route::resource('admin/users', \App\Http\Controllers\Admin\UserManagementController::class)->names([

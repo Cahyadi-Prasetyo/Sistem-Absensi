@@ -28,6 +28,43 @@ class RiwayatController extends Controller
     }
 
     /**
+     * Get today's attendances as JSON for real-time updates
+     */
+    public function todayJson()
+    {
+        $today = Carbon::today();
+        $attendances = $this->repository->getAllAttendances($today, $today);
+        
+        // Transform data for frontend
+        $data = $attendances->map(function($attendance) {
+            return [
+                'id' => $attendance->id,
+                'user_name' => $attendance->user->name,
+                'date' => $attendance->date->format('d M Y'),
+                'jam_masuk' => $attendance->jam_masuk ? $attendance->jam_masuk->format('H:i') : '-',
+                'jam_pulang' => $attendance->jam_pulang ? $attendance->jam_pulang->format('H:i') : '-',
+                'status' => $attendance->status,
+                'status_badge_class' => $this->getStatusBadgeClass($attendance->status),
+                'duration' => $attendance->getDurationFormatted(),
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    private function getStatusBadgeClass($status)
+    {
+        return match($status) {
+            'Hadir' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+            'Telat' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+            'Izin' => 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+            'Sakit' => 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+            'Alpha' => 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+            default => 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+        };
+    }
+
+    /**
      * Karyawan riwayat - show only own attendances
      */
     public function karyawanIndex(Request $request)

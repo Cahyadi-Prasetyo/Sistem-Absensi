@@ -10,11 +10,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Disable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
         // Clear all attendance data
         DB::table('attendances')->truncate();
         
         // Clear all attendance logs
         DB::table('attendance_logs')->truncate();
+
+        // Enable foreign key checks
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
     }
 
     /**

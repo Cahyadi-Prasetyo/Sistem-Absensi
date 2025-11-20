@@ -118,7 +118,6 @@
                             required
                             autofocus
                         >
-                        <p class="mt-1.5 sm:mt-2 text-xs text-gray-500">Gunakan 'admin@test.com' untuk role admin atau email lain untuk user</p>
                     </div>
 
                     <!-- Password -->

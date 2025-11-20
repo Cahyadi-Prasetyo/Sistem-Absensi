@@ -25,7 +25,7 @@ class HealthCheckCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(\App\Services\ServerStatusService $serverStatusService): int
     {
         try {
             // Check database connection
@@ -34,6 +34,8 @@ class HealthCheckCommand extends Command
             // Check Redis connection (optional, won't fail if Redis is down)
             try {
                 Redis::ping();
+                // Update heartbeat so this node appears "Online" in dashboard
+                $serverStatusService->updateHeartbeat();
             } catch (\Exception $e) {
                 // Redis is optional for basic health check
                 $this->warn('Redis connection failed, but continuing...');

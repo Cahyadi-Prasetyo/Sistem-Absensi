@@ -13,18 +13,20 @@ services:
       - redis_data:/data
     networks:
       - absensi-network
+    deploy:
+      restart_policy:
+        condition: on-failure
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
-    restart: unless-stopped
 
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-absensi}
-      MYSQL_USER: ${DB_USERNAME:-absensi}
+      MYSQL_DATABASE: absensi
+      MYSQL_USER: absensi
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     ports:
@@ -32,48 +34,45 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     command: --default-authentication-plugin=mysql_native_password --max_connections=200
+    networks:
+      - absensi-network
+    deploy:
+      restart_policy:
+        condition: on-failure
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    networks:
-      - absensi-network
-    restart: unless-stopped
 
   # ============================================
-  # CRITICAL: Dedicated Migration Service
-  # Runs database migrations ONCE before app nodes start
+  # Migration Service (Run Once)
   # ============================================
   
   migration:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     command: sh -c "php artisan migrate --force && php artisan db:seed --class=ResetDatabaseSeeder --force"
     env_file:
       - docker/.env.docker
     environment:
       APP_NODE_ID: migration-runner
       APP_NAME: "Migration Runner"
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      REDIS_PREFIX: absensi_database_
     networks:
       - absensi-network
-    restart: "no"  # Run once only, don't restart
+    deploy:
+      restart_policy:
+        condition: none # Run once
+      placement:
+        constraints: [node.role == manager]
 
   # ============================================
   # Laravel Reverb (WebSocket Server)
   # ============================================
   
   reverb:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     command: php artisan reverb:start --host=0.0.0.0 --port=8080 --debug
     env_file:
       - docker/.env.docker
@@ -83,31 +82,23 @@ services:
       REVERB_HOST: 0.0.0.0
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     ports:
       - "8081:8080"
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     volumes:
-      - ./storage/logs/reverb:/var/www/html/storage/logs
-    restart: unless-stopped
+      - reverb_logs:/var/www/html/storage/logs
     networks:
       - absensi-network
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   # ============================================
-  # CRITICAL: Queue Worker Service
-  # Processes broadcast jobs to send events to Reverb
-  # WITHOUT THIS, real-time updates WON'T WORK!
+  # Queue Worker
   # ============================================
   
   queue-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     command: php artisan queue:work redis --tries=3 --timeout=90 --sleep=3 --verbose
     env_file:
       - docker/.env.docker
@@ -118,61 +109,47 @@ services:
       BROADCAST_CONNECTION: reverb
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/queue:/var/www/html/storage/logs
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
-    restart: unless-stopped
+      - queue_logs:/var/www/html/storage/logs
     networks:
       - absensi-network
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   # ============================================
-  # Laravel App Nodes (PHP-FPM)
-  # Each node has SEPARATE log volume to prevent conflicts
+  # App Nodes (Distributed)
   # ============================================
   
   app-node-1:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     env_file:
       - docker/.env.docker
     environment:
       APP_NODE_ID: app-node-1
       APP_NAME: "Absensi Node 1"
-      SKIP_MIGRATION: "true"  # Migration already done
-      SKIP_CACHE: "true"      # Prevent cache file conflicts
+      SKIP_MIGRATION: "true"
+      SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/node-1:/var/www/html/storage/logs  # SEPARATE!
+      - node1_logs:/var/www/html/storage/logs
       - public_data:/var/www/html/public
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
+    networks:
+      - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     healthcheck:
       test: ["CMD", "php", "artisan", "health:check"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 40s
-    restart: unless-stopped
-    networks:
-      - absensi-network
 
   app-node-2:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     env_file:
       - docker/.env.docker
     environment:
@@ -180,31 +157,24 @@ services:
       APP_NAME: "Absensi Node 2"
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/node-2:/var/www/html/storage/logs  # SEPARATE!
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
+      - node2_logs:/var/www/html/storage/logs
+    networks:
+      - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     healthcheck:
       test: ["CMD", "php", "artisan", "health:check"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 40s
-    restart: unless-stopped
-    networks:
-      - absensi-network
 
   app-node-3:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     env_file:
       - docker/.env.docker
     environment:
@@ -212,31 +182,24 @@ services:
       APP_NAME: "Absensi Node 3"
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/node-3:/var/www/html/storage/logs  # SEPARATE!
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
+      - node3_logs:/var/www/html/storage/logs
+    networks:
+      - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     healthcheck:
       test: ["CMD", "php", "artisan", "health:check"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 40s
-    restart: unless-stopped
-    networks:
-      - absensi-network
 
   app-node-4:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     env_file:
       - docker/.env.docker
     environment:
@@ -244,62 +207,49 @@ services:
       APP_NAME: "Absensi Node 4"
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/node-4:/var/www/html/storage/logs  # SEPARATE!
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
+      - node4_logs:/var/www/html/storage/logs
+    networks:
+      - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
     healthcheck:
       test: ["CMD", "php", "artisan", "health:check"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 40s
-    restart: unless-stopped
-    networks:
-      - absensi-network
 
   # ============================================
-  # Redis Subscribers (for Pub/Sub)
-  # IMPORTANT: QUEUE_CONNECTION=sync to prevent loop!
+  # Subscribers
   # ============================================
   
   subscriber-node-1:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     command: php artisan redis:subscribe
     env_file:
       - docker/.env.docker
     environment:
       APP_NODE_ID: subscriber-node-1
       APP_NAME: "Absensi Subscriber Node 1"
-      QUEUE_CONNECTION: sync  # CRITICAL: Don't use queue!
+      QUEUE_CONNECTION: sync
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/sub-1:/var/www/html/storage/logs  # SEPARATE!
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
-    restart: unless-stopped
+      - sub1_logs:/var/www/html/storage/logs
     networks:
       - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   subscriber-node-2:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     command: php artisan redis:subscribe
     env_file:
       - docker/.env.docker
@@ -309,23 +259,18 @@ services:
       QUEUE_CONNECTION: sync
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/sub-2:/var/www/html/storage/logs  # SEPARATE!
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
-    restart: unless-stopped
+      - sub2_logs:/var/www/html/storage/logs
     networks:
       - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   subscriber-node-3:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     command: php artisan redis:subscribe
     env_file:
       - docker/.env.docker
@@ -335,23 +280,18 @@ services:
       QUEUE_CONNECTION: sync
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/sub-3:/var/www/html/storage/logs  # SEPARATE!
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
-    restart: unless-stopped
+      - sub3_logs:/var/www/html/storage/logs
     networks:
       - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   subscriber-node-4:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sistemabsensi-app:latest
     command: php artisan redis:subscribe
     env_file:
       - docker/.env.docker
@@ -361,18 +301,15 @@ services:
       QUEUE_CONNECTION: sync
       SKIP_MIGRATION: "true"
       SKIP_CACHE: "true"
+      REDIS_PREFIX: absensi_database_
     volumes:
-      - ./storage/logs/sub-4:/var/www/html/storage/logs  # SEPARATE!
-    depends_on:
-      migration:
-        condition: service_completed_successfully
-      redis:
-        condition: service_healthy
-      reverb:
-        condition: service_started
-    restart: unless-stopped
+      - sub4_logs:/var/www/html/storage/logs
     networks:
       - absensi-network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
   # ============================================
   # Nginx Load Balancer
@@ -385,26 +322,28 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - public_data:/var/www/html/public:ro
-    depends_on:
-      - app-node-1
-      - app-node-2
-      - app-node-3
-      - app-node-4
     networks:
       - absensi-network
-    restart: unless-stopped
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
 
-# ============================================
-# Volumes
-# ============================================
 volumes:
   redis_data:
   mysql_data:
   public_data:
+  reverb_logs:
+  queue_logs:
+  node1_logs:
+  node2_logs:
+  node3_logs:
+  node4_logs:
+  sub1_logs:
+  sub2_logs:
+  sub3_logs:
+  sub4_logs:
 
-# ============================================
-# Networks
-# ============================================
 networks:
   absensi-network:
-    driver: bridge
+    driver: overlay

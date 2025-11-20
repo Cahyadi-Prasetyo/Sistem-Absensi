@@ -46,7 +46,7 @@ class AbsensiCreated implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new Channel('absensi-channel'),
+            new Channel('attendances'),
         ];
     }
 
@@ -55,7 +55,7 @@ class AbsensiCreated implements ShouldBroadcast
      */
     public function broadcastAs(): string
     {
-        return 'AbsensiCreated';
+        return 'AttendanceCreated';
     }
 
     /**
